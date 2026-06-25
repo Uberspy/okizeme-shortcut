@@ -68,6 +68,51 @@
           .trim();
       }
 
+      function formatDirectMove(move) {
+        const commandPrefixes = [
+          "qcf", "qcb", "hcf", "hcb",
+          "df", "db", "uf", "ub",
+          "ws", "wr", "ss", "fc", "bt",
+          "f", "b", "u", "d", "n"
+        ];
+        const prefixPattern = commandPrefixes.join("|");
+
+        return move
+          .trim()
+          .replace(/\s+/g, " ")
+          .replace(
+            new RegExp("\\b(" + prefixPattern + ")\\s+([1-4])", "gi"),
+            function (_, prefix, button) {
+              return prefix.toLowerCase() + "+" + button;
+            }
+          )
+          .replace(/\b([A-Za-z]{2,})\s+([1-4](?:\+[1-4])*)\b/g, "$1.$2")
+          .split(" ")
+          .map(function (token) {
+            let value = token.replace(
+              /^(d|u)\/(f|b)(\+?)([1-4])/i,
+              function (_, vertical, horizontal, plus, button) {
+                return vertical.toLowerCase() + horizontal.toLowerCase() + "+" + button;
+              }
+            );
+
+            value = value.replace(
+              new RegExp("^(" + prefixPattern + ")([1-4])", "i"),
+              function (_, prefix, button) {
+                return prefix.toLowerCase() + "+" + button;
+              }
+            );
+
+            value = value.replace(/^([A-Za-z]{2,})\.?([1-4])/, function (match, stance, button) {
+              if (commandPrefixes.includes(stance.toLowerCase())) return match;
+              return stance.toUpperCase() + "." + button;
+            });
+
+            return value;
+          })
+          .join(" ");
+      }
+
       function findCharacter(raw) {
         const normalizedRaw = normalize(raw);
         const matches = [];
@@ -136,8 +181,9 @@
           return;
         }
 
+        const directMove = formatDirectMove(move);
         const fallbackUrl = isDirectMode
-          ? BASE_URL + "/" + encodeURIComponent(character) + "/" + encodeURIComponent(move)
+          ? BASE_URL + "/" + encodeURIComponent(character) + "/" + encodeURIComponent(directMove)
           : BASE_URL + "/" + encodeURIComponent(character) + "?search=" + encodeURIComponent(move);
 
         window.location.replace(fallbackUrl);
@@ -149,8 +195,9 @@
         return;
       }
 
+      const directMove = formatDirectMove(match.move);
       const url = isDirectMode
-        ? BASE_URL + "/" + encodeURIComponent(match.slug) + "/" + encodeURIComponent(match.move)
+        ? BASE_URL + "/" + encodeURIComponent(match.slug) + "/" + encodeURIComponent(directMove)
         : BASE_URL + "/" + encodeURIComponent(match.slug) + "?search=" + encodeURIComponent(match.move);
 
       window.location.replace(url);
