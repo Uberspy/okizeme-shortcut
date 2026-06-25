@@ -30,7 +30,6 @@ It also supports short names:
 @okizeme kuni SET1+2
 @okizeme dj u4
 @okizeme ak df1
-@okizeme yoshi flash
 ```
 
 These resolve to:
