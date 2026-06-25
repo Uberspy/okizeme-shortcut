@@ -3,73 +3,161 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Redirecting…</title>
+  <title>Redirecting...</title>
   <script>
     (function () {
+      const BASE_URL = "https://okizeme.gg/database";
+
+      const CHARACTERS = [
+        { slug: "alisa", aliases: ["alisa", "alisa bosconovitch"] },
+        { slug: "anna", aliases: ["anna", "anna williams"] },
+        { slug: "armor-king", aliases: ["armor king", "armour king", "ak"] },
+        { slug: "asuka", aliases: ["asuka", "asuka kazama"] },
+        { slug: "azucena", aliases: ["azucena", "azucena milagros ortiz castillo"] },
+        { slug: "bryan", aliases: ["bryan", "bryan fury"] },
+        { slug: "claudio", aliases: ["claudio", "claudio serafino"] },
+        { slug: "clive", aliases: ["clive", "clive rosfield"] },
+        { slug: "devil-jin", aliases: ["devil jin", "dj"] },
+        { slug: "dragunov", aliases: ["dragunov", "sergei dragunov"] },
+        { slug: "eddy", aliases: ["eddy", "eddy gordo"] },
+        { slug: "fahkumram", aliases: ["fahkumram", "fahk"] },
+        { slug: "feng", aliases: ["feng", "feng wei"] },
+        { slug: "heihachi", aliases: ["heihachi", "heihachi mishima"] },
+        { slug: "hwoarang", aliases: ["hwoarang", "hwaorang", "hwo"] },
+        { slug: "jack-8", aliases: ["jack-8", "jack 8", "jack8", "jack"] },
+        { slug: "jin", aliases: ["jin", "jin kazama"] },
+        { slug: "jun", aliases: ["jun", "jun kazama"] },
+        { slug: "kazuya", aliases: ["kazuya", "kazuya mishima", "kaz"] },
+        { slug: "king", aliases: ["king"] },
+        { slug: "kuma", aliases: ["kuma", "kuma ii"] },
+        { slug: "kunimitsu", aliases: ["kunimitsu", "kunimitsu ii", "kuni"] },
+        { slug: "lars", aliases: ["lars", "lars alexandersson"] },
+        { slug: "law", aliases: ["law", "marshall law", "marshal law"] },
+        { slug: "lee", aliases: ["lee", "lee chaolan"] },
+        { slug: "leo", aliases: ["leo", "leo kliesen"] },
+        { slug: "leroy", aliases: ["leroy", "leroy smith"] },
+        { slug: "lidia", aliases: ["lidia", "lidia sobieska"] },
+        { slug: "lili", aliases: ["lili", "emilie de rochefort", "lili de rochefort"] },
+        { slug: "miary-zo", aliases: ["miary zo", "miary", "nomenjanahary miary zo andrianavalona"] },
+        { slug: "nina", aliases: ["nina", "nina williams"] },
+        { slug: "panda", aliases: ["panda"] },
+        { slug: "paul", aliases: ["paul", "paul phoenix"] },
+        { slug: "raven", aliases: ["raven"] },
+        { slug: "reina", aliases: ["reina"] },
+        { slug: "shaheen", aliases: ["shaheen"] },
+        { slug: "steve", aliases: ["steve", "steve fox"] },
+        { slug: "victor", aliases: ["victor", "victor chevalier"] },
+        { slug: "xiaoyu", aliases: ["xiaoyu", "ling xiaoyu", "ling"] },
+        { slug: "yoshimitsu", aliases: ["yoshimitsu", "yoshi"] },
+        { slug: "zafina", aliases: ["zafina"] },
+
+        // Tekken 8 Season 3 DLC announced/reported after Okizeme's current list.
+        { slug: "bob", aliases: ["bob", "bob richards", "robert richards"] },
+        { slug: "roger-jr", aliases: ["roger jr", "roger jr.", "roger junior", "roger"] },
+        { slug: "yujiro-hanma", aliases: ["yujiro hanma", "yujiro", "baki"] }
+      ];
+
+      function normalize(value) {
+        return value
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[.'’]/g, "")
+          .replace(/[-_]+/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+      }
+
+      function findCharacter(raw) {
+        const normalizedRaw = normalize(raw);
+        const matches = [];
+
+        for (const character of CHARACTERS) {
+          for (const alias of character.aliases) {
+            const normalizedAlias = normalize(alias);
+            if (
+              normalizedRaw === normalizedAlias ||
+              normalizedRaw.startsWith(normalizedAlias + " ")
+            ) {
+              matches.push({
+                slug: character.slug,
+                alias: normalizedAlias,
+                length: normalizedAlias.length
+              });
+            }
+          }
+        }
+
+        if (matches.length === 0) return null;
+
+        matches.sort((a, b) => b.length - a.length);
+        const best = matches[0];
+        const tokens = raw.trim().split(/\s+/);
+        let consumed = 0;
+
+        for (let i = 1; i <= tokens.length; i++) {
+          if (normalize(tokens.slice(0, i).join(" ")) === best.alias) {
+            consumed = i;
+            break;
+          }
+        }
+
+        return {
+          slug: best.slug,
+          move: tokens.slice(consumed).join(" ").trim()
+        };
+      }
+
       const params = new URLSearchParams(window.location.search);
       const raw = (params.get("q") || "").trim();
 
-      // If opened without query, go to the database landing page
       if (!raw) {
-        window.location.replace("https://okizeme.gg/database");
+        window.location.replace(BASE_URL);
         return;
       }
 
-      // Tokenize by whitespace
       const parts = raw.split(/\s+/);
+      const isDirectMode = parts[parts.length - 1].toLowerCase() === "direct";
+      const query = isDirectMode ? parts.slice(0, -1).join(" ").trim() : raw;
+      const match = findCharacter(query);
 
-      // Expect at least: character + move
-      const character = (parts.shift() || "").trim();
-      if (!character) {
-        window.location.replace("https://okizeme.gg/database");
+      if (!match) {
+        const fallbackParts = query.split(/\s+/);
+        const character = (fallbackParts.shift() || "").trim();
+
+        if (!character) {
+          window.location.replace(BASE_URL);
+          return;
+        }
+
+        const move = fallbackParts.join(" ").trim();
+        if (!move) {
+          window.location.replace(BASE_URL + "/" + encodeURIComponent(character));
+          return;
+        }
+
+        const fallbackUrl = isDirectMode
+          ? BASE_URL + "/" + encodeURIComponent(character) + "/" + encodeURIComponent(move)
+          : BASE_URL + "/" + encodeURIComponent(character) + "?search=" + encodeURIComponent(move);
+
+        window.location.replace(fallbackUrl);
         return;
       }
 
-      // If there's nothing else, just go to the character page
-      if (parts.length === 0) {
-        window.location.replace(
-          "https://okizeme.gg/database/" + encodeURIComponent(character)
-        );
+      if (!match.move) {
+        window.location.replace(BASE_URL + "/" + encodeURIComponent(match.slug));
         return;
       }
 
-      // If the last token is "search", use query mode; otherwise use path mode
-      const last = parts[parts.length - 1].toLowerCase();
-      const isSearchMode = last === "direct";
-
-      if (isSearchMode) parts.pop(); // remove trailing "search"
-
-      const move = parts.join(" ").trim(); // allow spaces if you ever need them
-      if (!move) {
-        // No move provided; fall back to character page
-        window.location.replace(
-          "https://okizeme.gg/database/" + encodeURIComponent(character)
-        );
-        return;
-      }
-
-      let url;
-      if (!isSearchMode) {
-        // https://okizeme.gg/database/jin?search=df%2B2
-        url =
-          "https://okizeme.gg/database/" +
-          encodeURIComponent(character) +
-          "?search=" +
-          encodeURIComponent(move);
-      } else {
-        // https://okizeme.gg/database/jin/df%2B2
-        url =
-          "https://okizeme.gg/database/" +
-          encodeURIComponent(character) +
-          "/" +
-          encodeURIComponent(move);
-      }
+      const url = isDirectMode
+        ? BASE_URL + "/" + encodeURIComponent(match.slug) + "/" + encodeURIComponent(match.move)
+        : BASE_URL + "/" + encodeURIComponent(match.slug) + "?search=" + encodeURIComponent(match.move);
 
       window.location.replace(url);
     })();
   </script>
 </head>
 <body>
-  Redirecting…
+  Redirecting...
 </body>
 </html>
