@@ -50,7 +50,7 @@ The shortcut works by adding a custom search engine / site search entry in your 
 Use this URL:
 
 ```text
-https://tomysshadow.github.io/okizeme/?q=%s
+https://uberspy.github.io/okizeme-shortcut/?q=%s
 ```
 
 Use whatever keyword you prefer. The examples below use:
@@ -69,7 +69,7 @@ Use whatever keyword you prefer. The examples below use:
 6. Set the URL to:
 
 ```text
-https://tomysshadow.github.io/okizeme/?q=%s
+https://uberspy.github.io/okizeme-shortcut/?q=%s
 ```
 
 After that, type `@okizeme`, press space or tab, then type your search.
@@ -86,7 +86,7 @@ The usual approach is:
 4. Use this as the bookmark URL:
 
 ```text
-https://tomysshadow.github.io/okizeme/?q=%s
+https://uberspy.github.io/okizeme-shortcut/?q=%s
 ```
 
 Then type the keyword and your query in the address bar.
