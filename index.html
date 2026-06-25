@@ -68,6 +68,10 @@
           .trim();
       }
 
+      function isDirectFlag(value) {
+        return ["direct", "d", "-d", "--direct"].includes(value.toLowerCase());
+      }
+
       function formatDirectMove(move) {
         const commandPrefixes = [
           "qcf", "qcb", "hcf", "hcb",
@@ -162,7 +166,7 @@
       }
 
       const parts = raw.split(/\s+/);
-      const isDirectMode = parts[parts.length - 1].toLowerCase() === "direct";
+      const isDirectMode = isDirectFlag(parts[parts.length - 1]);
       const query = isDirectMode ? parts.slice(0, -1).join(" ").trim() : raw;
       const match = findCharacter(query);
 

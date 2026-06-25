@@ -53,6 +53,8 @@ Use this URL:
 https://uberspy.github.io/okizeme-shortcut/?q=%s
 ```
 
+That URL expects the redirect file to be published as `index.html` in the GitHub Pages site. The `README.md` is only the project documentation shown on GitHub.
+
 Use whatever keyword you prefer. The examples below use:
 
 ```text
@@ -139,10 +141,18 @@ More examples:
 
 ## Direct Move Pages
 
-If you add `direct` to the end, the shortcut tries to open the exact move page instead of using search.
+If you add a direct-mode flag to the end, the shortcut tries to open the exact move page instead of using search.
 
 ```text
 @okizeme kuni d1+2 direct
+```
+
+Short flag forms work too:
+
+```text
+@okizeme kuni d1+2 d
+@okizeme kuni d1+2 -d
+@okizeme kuni d1+2 --direct
 ```
 
 Direct mode is useful when you know the move exists and want the move page immediately.
@@ -243,4 +253,7 @@ Use direct mode when you want to jump straight to a specific move page:
 
 ```text
 @okizeme character move direct
+@okizeme character move d
 ```
+
+Search mode is more forgiving. Direct mode is faster when the notation matches an Okizeme move page.
